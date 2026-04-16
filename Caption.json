@@ -1,0 +1,210 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=Buat caption dari gambar ini.\n\nStyle:\n- Santai, natural, seperti orang ngobrol\n- Maksimal 2-3 kalimat\n- Tidak pakai bullet point atau numbering\n- Tidak ada kata seperti \"gambar ini menunjukkan\", \"penjelasan\", dll\n- Jangan terlalu teknis atau kaku\n- POV orang pertama bukan POV dari AI\n- Buat semanusia mungkin dan buat hook nya se bagus mungkin\n- Buat Call to Action juga contohnya Yang mau spill lokasi\n- Beri juga hashtags yang niche atau yang biasa keluar di postingan postingan\n\n\nTone: ringan, sedikit humor boleh",
+        "inputType": "binary",
+        "binaryPropertyName": "Gambar_Caption0",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "87a87e12-4907-4b08-8f1a-1cf53bae70d4",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7tKvjEAr26v5xEfd",
+          "name": "Gemini Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "captionAI",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "Gambar_Caption"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0bf95b3d-8f7e-4b20-952c-58a744380139",
+      "name": "Webhook",
+      "webhookId": "2b2a8b50-a3f3-4234-9ce0-caef8903f973"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      caption: $json.content.parts[0].text\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "6983e911-e77c-4ee6-99b1-2cc46d5a62ec",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.caption }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        0
+      ],
+      "id": "2b0a188a-9083-4882-b34d-0f41dd893bf3",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=Wah, pagi-pagi disuguhi pemandangan kayak gini, langsung auto lupa sama jalan kaki yang lumayan tadi. Sumpah, indah banget! Yuk yang mau tau ini di mana, absen di komen! 😉 #ExploreNusantara #MorningViewGoals #IslandLife #TravelIndonesia #NatureAddict #WonderfulIndonesia #HiddenGems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        384,
+        208
+      ],
+      "id": "a9a4d674-cf63-4147-a3a1-79e15ce28f96",
+      "name": "Respond to Webhook1",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false,
+      "notesInFlow": false,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 7
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        208
+      ],
+      "id": "f0c82657-8269-4e1b-94d7-3b638750fdef",
+      "name": "Wait",
+      "webhookId": "1b4724d9-8129-4827-bf8a-909c5e875571",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n-n8n.wrmm9a.easypanel.host",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+          "content-length": "113311",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "content-type": "multipart/form-data; boundary=----WebKitFormBoundaryYaIOmHygXHBBBNol",
+          "origin": "https://sikreator.afifrzn.my.id",
+          "priority": "u=1, i",
+          "referer": "https://sikreator.afifrzn.my.id/",
+          "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "x-forwarded-for": "36.73.249.70",
+          "x-forwarded-host": "n8n-n8n.wrmm9a.easypanel.host",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "ba291c65df45",
+          "x-real-ip": "36.73.249.70"
+        },
+        "params": {},
+        "query": {},
+        "body": {},
+        "webhookUrl": "https://n8n-n8n.wrmm9a.easypanel.host/webhook/captionAI",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e76a78ebc2c5e14827400a0966dd52dcd8b172ce95f7733e012ddecabdc96a1b"
+  }
+}

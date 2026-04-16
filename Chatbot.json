@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        736,
+        0
+      ],
+      "id": "6e134ba6-3e4a-4f6b-9961-c1db7589e4f3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-assistant",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "add67e8e-b2a2-4e86-bdae-ed206100edeb",
+      "name": "Webhook",
+      "webhookId": "2900e847-ddee-48e2-aa2b-486a774fdb63"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.body.message }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "308e8a08-c2fc-459f-a800-ba82a4016e59",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7tKvjEAr26v5xEfd",
+          "name": "Gemini Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let reply = \"\";\n\n// ✅ CASE: content_ideas (kasus terbaru)\nif ($json.content_ideas && Array.isArray($json.content_ideas)) {\n  reply = $json.content_ideas.map((item, i) => {\n    return `🔥 ${i + 1}. ${item}`;\n  }).join('\\n\\n');\n}\n\n// ✅ CASE: ide_konten (object lengkap)\nelse if ($json.ide_konten && Array.isArray($json.ide_konten)) {\n  reply = `## ${$json.judul_seri}\\n\\nTema: ${$json.tema}\\n\\n`;\n\n  reply += $json.ide_konten.map((item, i) => {\n    return `### ${i + 1}. ${item.judul}\\n${item.deskripsi}`;\n  }).join('\\n\\n');\n}\n\n// ✅ CASE: array langsung\nelse if (Array.isArray($json)) {\n\n  if (typeof $json[0] === 'object') {\n    reply = $json.map((item, i) => {\n      return `### ${i + 1}. ${item.judul}\\n${item.deskripsi}`;\n    }).join('\\n\\n');\n  } else {\n    reply = $json.map((item, i) => {\n      return `- ${item}`;\n    }).join('\\n');\n  }\n\n}\n\n// ✅ CASE: default AI text\nelse {\n  reply = $json.content?.parts?.[0]?.text || \"Maaf, aku belum bisa jawab 😅\";\n}\n\nreturn [\n  {\n    json: {\n      reply\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "4e875b27-c239-447c-b6d0-0c2124c3d8da",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e76a78ebc2c5e14827400a0966dd52dcd8b172ce95f7733e012ddecabdc96a1b"
+  }
+}
